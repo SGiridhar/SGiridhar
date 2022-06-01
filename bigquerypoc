@@ -1,0 +1,37 @@
+from google.cloud import bigquery
+import os
+import typing
+credentials_path = 'C:/Users/Giridhar/Documents/Json_keys/svc_bg_demo_key.json'
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credentials_path
+# Construct a BigQuery client object.
+client = bigquery.Client()
+
+job_config = bigquery.QueryJobConfig(
+    # Run at batch priority, which won't count toward concurrent rate limit.
+    priority=bigquery.QueryPriority.BATCH
+)
+
+sql = """
+insert into sample_dataset.sample_csv_internal
+(Year,Industry_aggregation_NZSIOC,Variable_name)
+select Year,Industry_aggregation_NZSIOC,Variable_name from sample_dataset.sample_csv limit 10;
+"""
+
+# Start the query, passing in the extra configuration.
+query_job = client.query(sql)  # Make an API request.
+results = query_job.result()
+print("The query is complete, rows processed:{}".format(query_job.num_dml_affected_rows))
+#for job in client.list_jobs(parent_job=query_job.job_id):  # list all child jobs
+#    print("Job ID: {}, Statement Type: {},Total Rows: {},Errors: {}".format(job.job_id, job.statement_type, job.totalRows, job.errors))
+
+# Check on the progress by getting the job's updated state. Once the state
+# is `DONE`, the results are ready.
+#query_job = typing.cast(
+#    "bigquery.QueryJob",
+#    client.get_job(
+#        query_job.job_id, location=query_job.location
+#    ),  # Make an API request.
+#)
+
+#print("Job {} is currently in state {}".format(query_job.job_id, query_job.state,query_job.statement_type))
+#print(results)
